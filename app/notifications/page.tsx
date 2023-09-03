@@ -1,29 +1,13 @@
 import Header from "@/components/Header";
 import NotificationsFeed from "@/components/NotificationsFeed";
-import useCurrentUser from "@/hooks/useCurrentUser";
+import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { NextPageContext } from "next";
-import { getSession } from "next-auth/react";
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
 
-export async function getServerSideProps(context: NextPageContext) {
-  const session = await getSession(context);
-
-  if (!session) {
-    return {
-      redirect: {
-        destination: "/",
-        permanent: false,
-      },
-    };
-  }
-
-  return {
-    props: {
-      session,
-    },
-  };
-}
-
-const Notifications = () => {
+const Notifications = async (context: NextPageContext) => {
+  const session = await getServerSession(authOptions);
+  if (!session) redirect("/");
   return (
     <>
       <Header showBackArrow label="Notifications" />
