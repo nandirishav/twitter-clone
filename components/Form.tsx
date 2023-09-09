@@ -8,9 +8,9 @@ import useRegisterModal from "@/hooks/useRegisterModal";
 import useCurrentUser from "@/hooks/useCurrentUser";
 import usePosts from "@/hooks/usePosts";
 import usePost from "@/hooks/usePost";
-
 import Avatar from "./Avatar";
 import Button from "./Button";
+import { HiPhotograph } from "react-icons/hi";
 
 interface FormProps {
   placeholder: string;
@@ -27,6 +27,8 @@ const Form: React.FC<FormProps> = ({ placeholder, isComment, postId }) => {
   const { mutate: mutatePost } = usePost(postId as string);
 
   const [body, setBody] = useState("");
+  const [image, setImage] = useState("");
+  const [imageURL, setImageURL] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const onSubmit = useCallback(async () => {
@@ -34,11 +36,27 @@ const Form: React.FC<FormProps> = ({ placeholder, isComment, postId }) => {
       setIsLoading(true);
 
       const url = isComment ? `/api/comments?postId=${postId}` : "/api/posts";
+      const formData = new FormData();
+      let imgUrl = "";
+      if (!isComment && (image || imageURL)) {
+        formData.append("file", image);
+        formData.append("upload_preset", "vvq11v0t");
+        const { data } = await axios.post(
+          `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+          formData
+        );
+        imgUrl = data?.secure_url;
+      }
 
-      await axios.post(url, { body });
+      await axios.post(url, {
+        body,
+        ...(!isComment && imgUrl && { image: imgUrl }),
+      });
 
       toast.success("Tweet created");
       setBody("");
+      setImage("");
+      setImageURL("");
       mutatePosts();
       mutatePost();
     } catch (error) {
@@ -46,7 +64,14 @@ const Form: React.FC<FormProps> = ({ placeholder, isComment, postId }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [body, mutatePosts, isComment, postId, mutatePost]);
+  }, [isComment, postId, body, mutatePosts, mutatePost, image]);
+
+  const handleImageSelect = (event: any) => {
+    if (!event.target.files) return;
+
+    setImageURL(URL.createObjectURL(event.target.files[0]));
+    setImage(event.target.files[0]);
+  };
 
   return (
     <div className="border-b-[1px] border-neutral-800 px-5 py-2">
@@ -84,9 +109,35 @@ const Form: React.FC<FormProps> = ({ placeholder, isComment, postId }) => {
                 border-neutral-800 
                 transition"
             />
-            <div className="mt-4 flex flex-row justify-end">
+            {image && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={imageURL || "/images/placeholder.png"}
+                style={{
+                  objectFit: "cover",
+                  height: "300px",
+                }}
+                alt=""
+              />
+            )}
+            <div className="mt-4 flex flex-row justify-end items-center gap-4">
+              <input
+                type="file"
+                id="file-input"
+                className="hidden"
+                name="file-input"
+                onChange={handleImageSelect}
+                accept=".jpg, .jpeg, .png"
+              />
+              <label
+                id="file-input-label"
+                htmlFor="file-input"
+                className="cursor-pointer"
+              >
+                <HiPhotograph size={30} color="white" />
+              </label>
               <Button
-                disabled={isLoading || !body}
+                disabled={isLoading || (!body && !image)}
                 onClick={onSubmit}
                 label="Tweet"
               />

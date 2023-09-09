@@ -7,7 +7,7 @@ import { formatDistanceToNowStrict } from "date-fns";
 import useLoginModal from "@/hooks/useLoginModal";
 import useCurrentUser from "@/hooks/useCurrentUser";
 import useLike from "@/hooks/useLike";
-
+import Image from "next/image";
 import Avatar from "../Avatar";
 interface PostItemProps {
   data: Record<string, any>;
@@ -70,7 +70,7 @@ const PostItem: React.FC<PostItemProps> = ({ data = {}, userId }) => {
     >
       <div className="flex flex-row items-start gap-3">
         <Avatar userId={data.user.id} />
-        <div>
+        <div className="flex-1">
           <div className="flex flex-row items-center gap-2">
             <p
               onClick={goToUser}
@@ -98,6 +98,16 @@ const PostItem: React.FC<PostItemProps> = ({ data = {}, userId }) => {
             <span className="text-neutral-500 text-sm">{createdAt}</span>
           </div>
           <div className="text-white mt-1">{data.body}</div>
+          {data.image && (
+            <div className="mt-2 h-[500px] w-full transition cursor-pointer relative">
+              <Image
+                src={data.image}
+                fill
+                style={{ objectFit: "cover" }}
+                alt="PostImage"
+              />
+            </div>
+          )}
           <div className="flex flex-row items-center mt-3 gap-10">
             <div
               className="
