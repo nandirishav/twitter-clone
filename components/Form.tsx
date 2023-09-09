@@ -42,7 +42,7 @@ const Form: React.FC<FormProps> = ({ placeholder, isComment, postId }) => {
         formData.append("file", image);
         formData.append("upload_preset", "vvq11v0t");
         const { data } = await axios.post(
-          `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+          `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload`,
           formData
         );
         imgUrl = data?.secure_url;
